@@ -104,16 +104,30 @@
             font-weight: 600;
             color: #f56b7c;
         }
+
+        .loading {
+            display: none;
+            font-size: 1.5em;
+            color: #f56b7c;
+            margin-top: 20px;
+        }
+
+        .error {
+            color: #f56b7c;
+            font-size: 1.2em;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Consumo de API - ViaCEP</h1>
+        <h1>Consumo da API ViaCEP: Consulte seu Endereço</h1>
         <p>Digite um CEP para ver o endereço:</p>
 
         <input type="text" id="cep" placeholder="Digite o CEP" maxlength="8">
         <button id="btnBuscar">Buscar Endereço</button>
+        <button id="btnLimpar">Limpar</button>
 
         <div id="resultado" class="resultado">
             <h3>Endereço encontrado:</h3>
@@ -122,10 +136,13 @@
             <p id="localidade"></p>
             <p id="uf"></p>
         </div>
+
+        <div id="loading" class="loading">Carregando...</div>
+        <div id="error" class="error">CEP não encontrado ou erro na consulta!</div>
     </div>
 
     <script>
-        document.getElementById("btnBuscar").addEventListener("click", function() {
+        function buscarEndereco() {
             var cep = document.getElementById("cep").value.replace(/\D/g, ''); // Remove qualquer caractere não numérico
 
             if (cep.length !== 8) {
@@ -135,12 +152,20 @@
 
             var url = `https://viacep.com.br/ws/${cep}/json/`;
 
+            // Exibe o carregamento
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("error").style.display = "none";
+            document.getElementById("resultado").style.display = "none";
+
             // Realizando a requisição para a API ViaCEP
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
+                    // Esconde o carregamento
+                    document.getElementById("loading").style.display = "none";
+
                     if (data.erro) {
-                        alert("CEP não encontrado!");
+                        document.getElementById("error").style.display = "block";
                         return;
                     }
 
@@ -155,12 +180,30 @@
                 })
                 .catch(error => {
                     console.error("Erro ao buscar o CEP:", error);
-                    alert("Erro ao buscar o CEP.");
+                    document.getElementById("loading").style.display = "none";
+                    document.getElementById("error").style.display = "block";
                 });
+        }
+
+        // Chama a função de busca quando o botão "Buscar Endereço" for clicado
+        document.getElementById("btnBuscar").addEventListener("click", buscarEndereco);
+
+        // Chama a função de busca quando a tecla "Enter" for pressionada no campo de CEP
+        document.getElementById("cep").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                buscarEndereco();
+            }
+        });
+
+        // Função para limpar os campos
+        document.getElementById("btnLimpar").addEventListener("click", function() {
+            document.getElementById("cep").value = "";
+            document.getElementById("resultado").style.display = "none";
+            document.getElementById("error").style.display = "none";
+            document.getElementById("loading").style.display = "none";
         });
     </script>
 
 </body>
 </html>
-
 
